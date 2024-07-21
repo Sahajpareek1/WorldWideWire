@@ -1,16 +1,24 @@
 const API_KEY = "1d3a0eefa97b499d8fbc4ee93eeb40b7";
 const url = "https://newsapi.org/v2/everything?q=";
 
-window.addEventListener("load", () => fetchNews("India"));
+document.addEventListener("DOMContentLoaded", () => fetchNews("India"));
 
 function reload() {
     window.location.reload();
 }
 
 async function fetchNews(query) {
-    const res = await fetch(`${url}${query}&apiKey=${API_KEY}`);
-    const data = await res.json();
-    bindData(data.articles);
+    try {
+        const res = await fetch(`${url}${query}&apiKey=${API_KEY}`);
+        const data = await res.json();
+        if (res.ok) {
+            bindData(data.articles);
+        } else {
+            console.error("Error fetching news:", data.message);
+        }
+    } catch (error) {
+        console.error("Network error:", error);
+    }
 }
 
 function bindData(articles) {
@@ -49,11 +57,17 @@ function fillDataInCard(cardClone, article) {
 }
 
 let curSelectedNav = null;
+
 function onNavItemClick(id) {
     fetchNews(id);
-    const navItem = document.getElementById(id);
-    curSelectedNav?.classList.remove("active");
-    curSelectedNav = navItem;
+    updateActiveNavItem(id);
+}
+
+function updateActiveNavItem(id) {
+    if (curSelectedNav) {
+        curSelectedNav.classList.remove("active");
+    }
+    curSelectedNav = document.getElementById(id);
     curSelectedNav.classList.add("active");
 }
 
@@ -61,9 +75,12 @@ const searchButton = document.getElementById("search-button");
 const searchText = document.getElementById("search-text");
 
 searchButton.addEventListener("click", () => {
-    const query = searchText.value;
-    if (!query) return;
-    fetchNews(query);
-    curSelectedNav?.classList.remove("active");
-    curSelectedNav = null;
+    const query = searchText.value.trim();
+    if (query) {
+        fetchNews(query);
+        if (curSelectedNav) {
+            curSelectedNav.classList.remove("active");
+            curSelectedNav = null;
+        }
+    }
 });
